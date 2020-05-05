@@ -53,22 +53,6 @@ class Backup():
         )
 
     @classmethod
-    def parse(cls, name: str) -> dict:
-
-        try:
-            _, project, volume, date_and_ext = name.split('-')
-            date, ext = date_and_ext.split('.')
-        except Exception:
-            raise exp.BackupParseNameError
-
-        return {
-            'volume': volume,
-            'project': project,
-            'datetime': date,
-            'file_type': ext,
-        }
-
-    @classmethod
     def format_name(
         cls,
         volume,
@@ -84,19 +68,6 @@ class Backup():
             project=project,
             datetime=datetime,
             file_type=file_type,
-        )
-
-    @classmethod
-    def fromStr(cls, name: str):
-        kwargs = cls.parse(name)
-        return Backup(**kwargs)
-
-    def __str__(self):
-        return self.format_name(
-            volume=self.volume,
-            project=self.project,
-            datetime=self.datetime,
-            file_type=self.file_type,
         )
 
 

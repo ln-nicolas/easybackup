@@ -1,18 +1,19 @@
-import datetime
 from typing import List
 
 from ..core.backup import Backup
-from ..core.lexique import DATE_FORMAT
 from ..core.clock import Clock
+from ..utils.taggable import TaggableType
 
 
-class BackupPolicy():
+class BackupPolicy(TaggableType):
 
     def should_backup(self, backups: List[Backup]) -> bool:
         """ Determine if a new backup should be done according to existing backups """
 
 
 class TimeIntervalBackupPolicy(BackupPolicy):
+
+    type_tag = 'timeinterval'
 
     def __init__(self, interval: int):
         self._interval = interval

@@ -1,103 +1,83 @@
-from . import exceptions as exp
-from .backup import Backup
-from .repository import Repository
+
+from .backup import Backup, Volume
+from .repository import Repository, RepositoryAdapter
 from ..policy.synchronization import SynchronizationPolicy, CopyPastePolicy
-from .backup_creator import BackupCreator
+from ..policy.cleanup import CleanupPolicy
+from . import exceptions as exp
 
 
 class RepositoryLink():
 
-    @classmethod
-    def chain(cls, *links):
-
-        if len(links) == 1:
-            return links[0]
-
-        if len(links) == 2:
-            cls.check_chainning_compatibility(
-                links[0], links[1]
-            )
-            links[0]._chain_to = links[1]
-            return links[0]
-
-        else:
-            links[0]._chain_to = cls.chain(*links[1:])
-            return links[0]
-
-    @classmethod
-    def check_chainning_compatibility(cls, link_from, link_to) -> bool:
-        """ Check if two creators are compatible to be chaining """
-
-        from_target = link_from.target_adapter()
-        source_to = link_to.source_adapter()
-
-        if not source_to:
-            raise exp.BuilderChainningIncompatibility
-
-        if type(source_to) is not type(from_target):
-            raise exp.BuilderChainningIncompatibility
+    type_tag_source = False
+    type_tag_target = False
 
     def __init__(
         self,
-        sync_policy: SynchronizationPolicy = False,
-        **conf
+        source: RepositoryAdapter,
+        target: RepositoryAdapter
     ):
-        self.setup(**conf)
-        self._chain_to = False
-        self._sync_policy = sync_policy or CopyPastePolicy()
-
-        if source:
-            self.check_chainning_compatibility(source, self)
-            self._source = source
-
-    def setup(self, **conf):
-        """ setup creator with custom configuration values """
-        raise NotImplementedError
-
-    def source_adapter(self) -> Repository:
-        """ Return the source repository """
-        raise NotImplementedError
-
-    def target_adapter(self) -> Repository:
-        """ Return the repository where backups are stored """
-        raise NotImplementedError
+        self._source = source
+        self._target = target
 
     def copy_backup(self, backup: Backup):
         """ Synchronize backup from source to target """
         raise NotImplementedError
 
     @property
+    def target_adapter(self) -> RepositoryAdapter:
+        return self._target
+
+    @property
+    def source_adapter(self) -> RepositoryAdapter:
+        return self._source
+
+    @property
     def target_repository(self) -> Repository:
-        return Repository(adapter=self.target_adapter())
+        return Repository(adapter=self._target)
 
     @property
     def source_repository(self) -> Repository:
-        return Repository(adapter=self.source_adapter())
+        return Repository(adapter=self._source)
 
-    def synchronize(self):
+    def synchronize(self, policy: SynchronizationPolicy = False):
         """ Synchronize all backup from source to target """
 
-        tocopy = self._sync_policy.to_copy(
+        policy = policy or CopyPastePolicy()
+
+        tocopy = policy.to_copy(
             source=self.source_repository,
             target=self.target_repository
         )
-        todelete = self._sync_policy.to_delete(
+        todelete = policy.to_delete(
             source=self.source_repository,
             target=self.target_repository
         )
 
         self.copy_backups(tocopy)
-        self.delete_backups(todelete)
-        if self._chain_to:
-            self._chain_to.synchronize()
-
-    def delete_backups(self, backups):
-        self.source_repository.cleanup_backups(backups)
+        self.target_repository.cleanup_backups(todelete)
 
     def copy_backups(self, backups):
+        list(map(self.copy_backup, backups))
 
-        if len(backups) == 0:
-            return
+    @classmethod
+    def get_source_target_compatible(cls, source, target):
 
-        self.copy_backup(backups[0])
-        self.copy_backups(backups[1:])
+        for sub in cls.__subclasses__():
+            if sub.type_tag_source == source and sub.type_tag_target == target:
+                return sub
+
+        raise exp.RepositoryLinkNotFound()
+
+
+class Synchroniser():
+
+    def __init__(
+        self,
+        link: RepositoryLink,
+        sync_policy: SynchronizationPolicy = False,
+    ):
+        self.link = link
+        self.sync_policy = sync_policy or CopyPastePolicy()
+
+    def synchronize(self):
+        self.link.synchronize(policy=self.sync_policy)

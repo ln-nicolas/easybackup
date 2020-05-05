@@ -2,8 +2,8 @@ from typing import List
 
 from .backup import Backup, Volume
 from .backup_creator import BackupCreator
+from .repository_link import Synchroniser
 from ..policy.backup import BackupPolicy
-from ..policy.synchronization import CopyPastePolicy
 from ..policy.cleanup import CleanupPolicy
 from .clock import Clock
 from .repository import Repository
@@ -17,8 +17,7 @@ class BackupComposer():
         volume: str,
         creator: BackupCreator,
         repository: Repository = False,
-        repositories: List[Repository] = False,
-        synchronizeers: List[BackupCreator] = [],
+        synchronizers: List[Synchroniser] = [],
         cleanup_policy: CleanupPolicy = False,
         backup_policy: BackupPolicy = False
     ):
@@ -31,9 +30,7 @@ class BackupComposer():
         else:
             self._repository = creator.target_repository
 
-        self._repositories = repositories
-
-        self._synchronizeers = synchronizeers
+        self._synchronizers = synchronizers
         self._cleanup_policy = cleanup_policy
         self._backup_policy = backup_policy
 
@@ -54,8 +51,8 @@ class BackupComposer():
         return self._repository
 
     @property
-    def synchronizeers(self) -> List[BackupCreator]:
-        return self._synchronizeers
+    def synchronizers(self) -> List[BackupCreator]:
+        return self._synchronizers
 
     @property
     def cleanup_policy(self) -> CleanupPolicy:
@@ -78,7 +75,7 @@ class BackupComposer():
             volume=self.volume,
             project=self.project
         ))
-        for synchronizeer in self.synchronizeers:
+        for synchronizeer in self.synchronizers:
             synchronizeer.synchronize()
 
     def run(self):

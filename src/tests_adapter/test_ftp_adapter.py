@@ -68,6 +68,8 @@ def test_backup_then_restore_local_file_to_ftp_repository(temp_directory):
             backup_directory=temp_directory('backups')
         )
 
+        ftp_adapter = FtpRepositoryAdapter(ftp_conf=FTP_CONF)
+
         composer = BackupComposer(
             project='myproject',
             volume='db',
@@ -80,20 +82,21 @@ def test_backup_then_restore_local_file_to_ftp_repository(temp_directory):
         composer.run()
 
         link = LocalToFtp(
-            sync_policy=CopyPastePolicy(),
-            source_directory=temp_directory('backups'),
-            ftp_conf=FTP_CONF
+            source=local_creator.target_adapter(),
+            target=ftp_adapter
         )
         link.synchronize()
 
-        target = link.target_adapter()
+        target = link.target_adapter
         backups = target.fetch_backups()
 
         backup = backups[0]
 
+        local_restore = LocalRepositoryAdapter(directory=temp_directory('restore'))
+
         link = FtpToLocal(
-            target_directory=temp_directory('restore'),
-            ftp_conf=FTP_CONF
+            source=ftp_adapter,
+            target=local_restore
         )
         link.copy_backup(backup)
 
@@ -111,6 +114,7 @@ def test_delete_backup_on_ftp_repository(temp_directory):
 
     randomfile(temp_directory('production-A.txt'))
     randomfile(temp_directory('production-B.txt'))
+    ftp_adapter = FtpRepositoryAdapter(ftp_conf=FTP_CONF)
 
     local_creator_A = LocalBackupCreator(
         source=temp_directory('production-A.txt'),
@@ -147,17 +151,21 @@ def test_delete_backup_on_ftp_repository(temp_directory):
     assert len(composerB.fetch()) == 1
 
     link = LocalToFtp(
-        sync_policy=CopyPastePolicy(),
-        source_directory=temp_directory('backups'),
-        ftp_conf=FTP_CONF
+        source=local_creator_A.target_adapter(),
+        target=ftp_adapter
+    )
+    link.synchronize()
+
+    link = LocalToFtp(
+        source=local_creator_B.target_adapter(),
+        target=ftp_adapter
     )
     link.synchronize()
 
     # Clear
-    composerA.run()
-    composerB.run()
+    rep = Repository(adapter=ftp_adapter)
+    rep.cleanup_backups(local_creator_A.target_adapter().fetch_backups())
+    backups = rep.fetch()
 
-    backups = link.target_repository.fetch()
-
-    assert len(Volume('db', 'myprojectA').match(backups)) == 1
-    assert len(Volume('db', 'myprojectB').match(backups)) == 0
+    assert len(Volume('db', 'myprojectA').match(backups)) == 0
+    assert len(Volume('db', 'myprojectB').match(backups)) == 1

@@ -2,9 +2,10 @@ from typing import List
 
 from ..core.backup import Backup
 from ..core.clock import Clock
+from ..utils.taggable import TaggableType
 
 
-class CleanupPolicy():
+class CleanupPolicy(TaggableType):
 
     def filter_backups_to_cleanup(self, backups: List[Backup]) -> (List[Backup]):
         """ Return a tuple backup to cleanup """
@@ -17,6 +18,8 @@ class CleanupPolicy():
 
 class ClearAllCleanupPolicy(CleanupPolicy):
 
+    type_tag = 'clearall'
+
     def filter_backups_to_cleanup(self, backups):
         return backups
 
@@ -26,9 +29,11 @@ class ClearAllCleanupPolicy(CleanupPolicy):
 
 class LifetimeCleanupPolicy(CleanupPolicy):
 
-    def __init__(self, max_age: int, mininum: int):
+    type_tag = 'lifetime'
+
+    def __init__(self, max_age: int, minimum: int):
         self._max_age = max_age
-        self._minimum = mininum
+        self._minimum = minimum
 
     def filter_backups_to_cleanup(self, backups: List[Backup]) -> List[Backup]:
         tokeep = self.filter_backups_to_keep(backups)

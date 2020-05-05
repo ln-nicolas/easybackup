@@ -31,7 +31,7 @@ def test_compare_datetime(date, reference, max_age, assertion):
     Clock.monkey_now(reference)
     policy = LifetimeCleanupPolicy(
         max_age=max_age,
-        mininum=0
+        minimum=0
     )
     outdated = policy.outdated(date)
     assert outdated is assertion
@@ -45,7 +45,7 @@ def test_filter_backups():
     backups = []
     policy = LifetimeCleanupPolicy(
         max_age=1*60*60,
-        mininum=0
+        minimum=0
     )
     tokeep = policy.filter_backups_to_keep(backups)
     tocleanup = policy.filter_backups_to_cleanup(backups)
@@ -71,7 +71,7 @@ def test_filter_backups():
     # Keep Zero
     policy = LifetimeCleanupPolicy(
         max_age=1*60*60,
-        mininum=0
+        minimum=0
     )
     tokeep = policy.filter_backups_to_keep(backups)
     tocleanup = policy.filter_backups_to_cleanup(backups)
@@ -81,7 +81,7 @@ def test_filter_backups():
     # Keep One
     policy = LifetimeCleanupPolicy(
         max_age=24*60*60,
-        mininum=0
+        minimum=0
     )
     tokeep = policy.filter_backups_to_keep(backups)
     tocleanup = policy.filter_backups_to_cleanup(backups)
@@ -95,7 +95,7 @@ def test_filter_backups():
     # Keep at least 2
     policy = LifetimeCleanupPolicy(
         max_age=1*60*60,
-        mininum=2
+        minimum=2
     )
     tokeep = policy.filter_backups_to_keep(backups)
     tocleanup = policy.filter_backups_to_cleanup(backups)
@@ -112,7 +112,7 @@ def test_compute_backups_to_cleanup(memory_adapter):
 
     policy = LifetimeCleanupPolicy(
         max_age=24*60*60,
-        mininum=2
+        minimum=2
     )
 
     rep = Repository(
@@ -130,7 +130,7 @@ def test_cleanup_backups(memory_adapter):
 
     policy = LifetimeCleanupPolicy(
         max_age=24*60*60,
-        mininum=2
+        minimum=2
     )
 
     rep = Repository(

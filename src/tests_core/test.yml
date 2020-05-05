@@ -1,0 +1,13 @@
+version: 1.0.0
+projects:
+
+  myproject:
+    app:
+      type: inmemory
+      
+      source_bucket: A
+      target_bucket: B
+
+      backup_policy:
+        type: timeinterval
+        interval: 1000

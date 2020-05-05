@@ -7,6 +7,9 @@ class BackupParseNameError(EasyBackupException):
     pass
 
 
-class BuilderChainningIncompatibility(EasyBackupException):
+class RepositoryLinkNotFound(EasyBackupException):
     pass
 
+
+class BuilderChainningIncompatibility(EasyBackupException):
+    pass

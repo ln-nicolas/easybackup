@@ -27,6 +27,8 @@ def clock(datetime):
 
 class MemoryRepositoryAdapter(RepositoryAdapter):
 
+    type_tag = 'inmemory'
+
     def setup(self, backups=[], bucket='A', force_clear=False):
         self.bucket = bucket
         if backups:
@@ -92,49 +94,18 @@ class MemoryRepositoryAdapter(RepositoryAdapter):
 
 class MemoryRepositoryLink(RepositoryLink):
 
-    def setup(self, source_bucket=False, target_bucket='A'):
-        self.source_bucket = source_bucket
-        self.target_bucket = target_bucket
-
-    def source_adapter(self):
-        return MemoryRepositoryAdapter(bucket=self.source_bucket)
-
-    def target_adapter(self):
-        return MemoryRepositoryAdapter(bucket=self.target_bucket)
+    type_tag_source = 'inmemory'
+    type_tag_target = 'inmemory'
 
     def copy_backup(self, backup):
-        self.target_backups.append(
+        self.target_adapter.backups.append(
             backup.formated_name
         )
 
-    @property
-    def source_backups(self):
-        global BUCKET_A
-        global BUCKET_B
-        global BUCKET_C
-        global BUCKET_D
-        return {
-            'A': BUCKET_A,
-            'B': BUCKET_B,
-            'C': BUCKET_C,
-            'D': BUCKET_D
-        }.get(self.source_bucket)
-
-    @property
-    def target_backups(self):
-        global BUCKET_A
-        global BUCKET_B
-        global BUCKET_C
-        global BUCKET_D
-        return {
-            'A': BUCKET_A,
-            'B': BUCKET_B,
-            'C': BUCKET_C,
-            'D': BUCKET_D
-        }.get(self.target_bucket)
-
 
 class MemoryBackupCreator(BackupCreator):
+
+    type_tag = 'inmemory'
 
     RepositoryAdapter = MemoryRepositoryAdapter
 

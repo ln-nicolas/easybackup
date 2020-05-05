@@ -155,8 +155,8 @@ def test_copy_backup_from_folder_to_an_other(temp_directory):
     rep_backups_copy = LocalRepositoryAdapter(directory=temp_directory('backups_copy'))
 
     link = LocalToLocal(
-        source_directory=temp_directory('backups'),
-        target_directory=temp_directory('backups_copy')
+        source=rep_backups,
+        target=rep_backups_copy
     )
 
     backup = rep_backups.fetch_backups()[0]
@@ -167,7 +167,7 @@ def test_copy_backup_from_folder_to_an_other(temp_directory):
     assert backups[0].datetime == backup.datetime
 
     # Test backup extraction
-    tar = tarfile.open(rep_backups_copy.path(str(backup)))
+    tar = tarfile.open(rep_backups_copy.backup_path(backup))
     tar.extractall(temp_directory('backups'))
     extract_file = open(temp_directory('backups/random.txt'), "r").read()
 

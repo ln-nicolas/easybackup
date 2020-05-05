@@ -93,19 +93,7 @@ class LocalBackupCreator(BackupCreator):
 
 class LocalToLocal(RepositoryLink):
 
-    def setup(self, source_directory=False, target_directory=False):
-        self.source_directory = source_directory
-        self.target_directory = target_directory
-
-    def source_adapter(self):
-        return LocalRepositoryAdapter(directory=self.source_directory)
-
-    def target_adapter(self):
-        return LocalRepositoryAdapter(directory=self.target_directory)
-
     def copy_backup(self, backup):
-
-        source_path = self.source_adapter().backup_path(backup)
-        target_path = self.target_adapter().backup_path(backup)
-
+        source_path = self.source_adapter.backup_path(backup)
+        target_path = self.target_adapter.backup_path(backup)
         shutil.copyfile(source_path, target_path)

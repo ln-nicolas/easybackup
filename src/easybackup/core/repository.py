@@ -5,9 +5,12 @@ from typing import List
 from ..policy.cleanup import CleanupPolicy
 from .backup import Backup, Volume
 from .lexique import ARCHIVE_TYPE
+from ..utils.taggable import TaggableType
 
 
-class RepositoryAdapter():
+class RepositoryAdapter(TaggableType):
+
+    tag_type = False
 
     _prefix = 'easybackup'
 
@@ -55,8 +58,9 @@ class RepositoryAdapter():
 
 class Repository():
 
-    def __init__(self, adapter):
+    def __init__(self, adapter, name=False):
         self._adapter = adapter
+        self.name = name
 
     @property
     def adapter(self) -> RepositoryAdapter:

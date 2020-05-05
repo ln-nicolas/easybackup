@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
 
 import pytest
+from parameterized import parameterized
 
 from easybackup.core import exceptions as exp
 from easybackup.core.backup import Backup
 from easybackup.core.backup_composer import BackupComposer
-from easybackup.core.repository_link import RepositoryLink
+from easybackup.core.repository_link import RepositoryLink, Synchroniser
 from easybackup.core.repository import Repository
 from easybackup.policy.backup import TimeIntervalBackupPolicy
-from easybackup.policy.synchronization import CopyPastePolicy, MovePolicy
+from easybackup.policy.synchronization import CopyPastePolicy, SynchronizeRecentPolicy
+from easybackup.policy.cleanup import LifetimeCleanupPolicy
+from easybackup.core.clock import Clock
 
 from .mock import (MemoryBackupCreator, MemoryRepositoryAdapter,
                    MemoryRepositoryLink, MockLocalToFtp, MockMysqlToLocal)
@@ -23,6 +26,8 @@ mockbackups = [
     'easybackup-myproject-db-20200421_130000.tar',
     'easybackup-myproject-db-20200422_130000.tar',
 ]
+
+infinity = 1e100
 
 
 def test_compute_backup_to_copy_with_synchronize_all_policy():
@@ -50,20 +55,19 @@ def test_compute_backup_to_copy_with_synchronize_all_policy():
     assert len(tosynchronize) == 2
 
 
-def test_copy_backups_with_syncall_policy():
-    policy = CopyPastePolicy()
+def test_copy_backups_with_copypaste_policy():
 
-    repository_a = Repository(adapter=MemoryRepositoryAdapter(bucket='A', backups=mockbackups))
-    repository_b = Repository(adapter=MemoryRepositoryAdapter(bucket='B', backups=mockbackups[:2]))
+    adapterA = MemoryRepositoryAdapter(bucket='A', backups=mockbackups)
+    adapterB = MemoryRepositoryAdapter(bucket='B', backups=mockbackups[:2])
 
-    link = MemoryRepositoryLink(
-        source_bucket='A',
-        target_bucket='B'
-    )
+    repository_a = Repository(adapter=adapterA)
+    repository_b = Repository(adapter=adapterB)
+
+    link = MemoryRepositoryLink(adapterA, adapterB)
 
     assert len(repository_b.fetch()) == 2
 
-    link.synchronize()
+    link.synchronize(policy=CopyPastePolicy())
 
     assert len(repository_b.fetch()) == 4
     assert repository_b.fetch()[-1].datetime == repository_a.fetch()[-1].datetime
@@ -71,19 +75,17 @@ def test_copy_backups_with_syncall_policy():
 
 def test_composer_backup_can_be_synchronizeed_to_other_repositories():
 
-    repository_a = Repository(adapter=MemoryRepositoryAdapter(bucket='A', force_clear=True))
-    repository_b = Repository(adapter=MemoryRepositoryAdapter(bucket='B', force_clear=True))
-    repository_c = Repository(adapter=MemoryRepositoryAdapter(bucket='C', force_clear=True))
+    adapterA = MemoryRepositoryAdapter(bucket='A', force_clear=True)
+    adapterB = MemoryRepositoryAdapter(bucket='B', force_clear=True)
+    adapterC = MemoryRepositoryAdapter(bucket='C', force_clear=True)
+
+    repository_a = Repository(adapter=adapterA)
+    repository_b = Repository(adapter=adapterB)
+    repository_c = Repository(adapter=adapterC)
     backup_policy = TimeIntervalBackupPolicy(1000)
 
-    link_to_b = MemoryRepositoryLink(
-        source_bucket='A',
-        target_bucket='B'
-    )
-    link_to_c = MemoryRepositoryLink(
-        source_bucket='A',
-        target_bucket='C'
-    )
+    link_to_b = MemoryRepositoryLink(adapterA, adapterB)
+    link_to_c = MemoryRepositoryLink(adapterA, adapterC)
 
     creator = MemoryBackupCreator(bucket='A')
     composer = BackupComposer(
@@ -92,9 +94,9 @@ def test_composer_backup_can_be_synchronizeed_to_other_repositories():
         creator=creator,
         backup_policy=backup_policy,
         cleanup_policy=False,
-        synchronizeers=[
-            link_to_b,
-            link_to_c
+        synchronizers=[
+            Synchroniser(link_to_b, CopyPastePolicy()),
+            Synchroniser(link_to_c, CopyPastePolicy())
         ]
     )
 
@@ -114,100 +116,110 @@ def test_composer_backup_can_be_synchronizeed_to_other_repositories():
     assert len(backups_on_c) == 1
 
 
-def test_backup_creator_can_be_chained():
+def test_synchronize_recent_policy_cleanup_on_target():
 
-    repository_a = Repository(adapter=MemoryRepositoryAdapter(bucket='A', force_clear=True))
-    repository_b = Repository(adapter=MemoryRepositoryAdapter(bucket='B', force_clear=True))
-    repository_c = Repository(adapter=MemoryRepositoryAdapter(bucket='C', force_clear=True))
-    repository_d = Repository(adapter=MemoryRepositoryAdapter(bucket='D', force_clear=True))
+    """
+    It Guarantee a `minimum` number of backups on the
+    target repository.
+    If `age_mini` is greater than 0, all outdated backups
+    are deleted if the number of backups is enought.
+    """
 
-    creator = MemoryBackupCreator(target_bucket='A')
-    link_from_A_to_D = RepositoryLink.chain(
-        MemoryRepositoryLink(source_bucket='A', target_bucket='B'),
-        MemoryRepositoryLink(source_bucket='B', target_bucket='C'),
-        MemoryRepositoryLink(source_bucket='C', target_bucket='D')
-    )
+    mockbackups = [
+        'easybackup-myproject-db-20200420_130000.tar',
+        'easybackup-myproject-db-20200420_130100.tar',
+        'easybackup-myproject-db-20200421_130000.tar',
+        'easybackup-myproject-db-20200422_130000.tar',
+    ]
+    A = Repository(adapter=MemoryRepositoryAdapter(bucket='A', backups=mockbackups))
+    B = Repository(adapter=MemoryRepositoryAdapter(bucket='B', force_clear=True))
 
-    creator.build_backup(Backup(
+    # copy the most recent from A to B
+    policy = SynchronizeRecentPolicy(minimum=1)
+    tocopy = policy.to_copy(A, B)
+    todelete = policy.to_delete(A, B)
+    assert len(todelete) == 0
+    assert len(tocopy) == 1
+
+    # copy all from A to B, and delete all on B
+    Clock.monkey_now('20200422_130000')
+    A = Repository(adapter=MemoryRepositoryAdapter(bucket='A', backups=[mockbackups[2], mockbackups[3]]))
+    B = Repository(adapter=MemoryRepositoryAdapter(bucket='B', backups=[mockbackups[0], mockbackups[1]]))
+    policy = SynchronizeRecentPolicy(minimum=2)
+    tocopy = policy.to_copy(A, B)
+    todelete = policy.to_delete(A, B)
+    assert len(todelete) == 2
+    assert len(tocopy) == 2
+
+    # nothing to sync, nothing to delete
+    Clock.monkey_now('20200422_130000')
+    A = Repository(adapter=MemoryRepositoryAdapter(bucket='A', backups=mockbackups))
+    B = Repository(adapter=MemoryRepositoryAdapter(bucket='B', backups=mockbackups))
+    policy = SynchronizeRecentPolicy(minimum=5)
+    tocopy = policy.to_copy(A, B)
+    todelete = policy.to_delete(A, B)
+    assert len(todelete) == 0
+    assert len(tocopy) == 0
+
+    # nothing to copy, delete the oldest on B
+    Clock.monkey_now('20200422_130000')
+    A = Repository(adapter=MemoryRepositoryAdapter(bucket='A', backups=mockbackups))
+    B = Repository(adapter=MemoryRepositoryAdapter(bucket='B', backups=mockbackups))
+    policy = SynchronizeRecentPolicy(minimum=3)
+    tocopy = policy.to_copy(A, B)
+    todelete = policy.to_delete(A, B)
+    assert len(todelete) == 1
+    assert len(tocopy) == 0
+
+    # copy the two last ones from A to B, and delete two oldest on B
+    mockbackups = [
+        'easybackup-myproject-db-20200420_130000.tar',
+        'easybackup-myproject-db-20200420_130100.tar',
+        'easybackup-myproject-db-20200421_130000.tar',
+        'easybackup-myproject-db-20200422_130000.tar',
+        'easybackup-myproject-db-20200422_140000.tar',
+        'easybackup-myproject-db-20200422_150000.tar',
+    ]
+    Clock.monkey_now('20200423_130000')
+    A = Repository(adapter=MemoryRepositoryAdapter(bucket='A', backups=mockbackups))
+    B = Repository(adapter=MemoryRepositoryAdapter(bucket='B', backups=mockbackups[:3]))
+    policy = SynchronizeRecentPolicy(minimum=2)
+    tocopy = policy.to_copy(A, B)
+    todelete = policy.to_delete(A, B)
+    assert len(todelete) == 3
+    assert len(tocopy) == 2
+
+
+def test_setup_a_cleanup_policy_on_synchronized_repository():
+
+    adapterA = MemoryRepositoryAdapter(bucket='A', force_clear=True)
+    adapterB = MemoryRepositoryAdapter(bucket='B', force_clear=True)
+
+    link = MemoryRepositoryLink(adapterA, adapterB)
+    creator = MemoryBackupCreator(bucket='A')
+
+    composer = BackupComposer(
         project='myproject',
         volume='db',
-        datetime='20200420_130000'
-    ))
-    link_from_A_to_D.synchronize()
-
-    # Check A
-    backups = repository_a.fetch()
-    assert len(backups) == 1
-    assert backups[0].datetime == '20200420_130000'
-
-    # Check B
-    backups = repository_b.fetch()
-    assert len(backups) == 1
-    assert backups[0].datetime == '20200420_130000'
-
-    # Check C
-    backups = repository_c.fetch()
-    assert len(backups) == 1
-    assert backups[0].datetime == '20200420_130000'
-
-    # Check D
-    backups = repository_d.fetch()
-    assert len(backups) == 1
-    assert backups[0].datetime == '20200420_130000'
-
-
-def test_backup_creator_chain_can_have_temps_nodes():
-
-    repository_a = Repository(adapter=MemoryRepositoryAdapter(bucket='A', force_clear=True))
-    repository_b = Repository(adapter=MemoryRepositoryAdapter(bucket='B', force_clear=True))
-    repository_c = Repository(adapter=MemoryRepositoryAdapter(bucket='C', force_clear=True))
-    repository_d = Repository(adapter=MemoryRepositoryAdapter(bucket='D', force_clear=True))
-
-    creator = MemoryBackupCreator(
-        target_bucket='A',
-    )
-    link_from_A_to_D = RepositoryLink.chain(
-        MemoryRepositoryLink(source_bucket='A', target_bucket='B', sync_policy=MovePolicy()),
-        MemoryRepositoryLink(source_bucket='B', target_bucket='C'),
-        MemoryRepositoryLink(source_bucket='C', target_bucket='D', sync_policy=MovePolicy())
+        creator=creator,
+        backup_policy=TimeIntervalBackupPolicy(1000),
+        cleanup_policy=False,
+        synchronizers=[
+            Synchroniser(
+                link,
+                SynchronizeRecentPolicy(minimum=2)
+            ),
+        ]
     )
 
-    creator.build_backup(Backup(
-        project='myproject',
-        volume='db',
-        datetime='20200420_130000'
-    ))
-    link_from_A_to_D.synchronize()
+    Clock.monkey_now('20200101_000000')
+    composer.run()
 
-    # Check A
-    backups = repository_a.fetch()
-    assert len(backups) == 0
+    Clock.monkey_now('20200102_000000')
+    composer.run()
 
-    # Check B
-    backups = repository_b.fetch()
-    assert len(backups) == 1
-    assert backups[0].datetime == '20200420_130000'
+    assert len(adapterB.fetch_backups()) == 2
 
-    # Check C
-    backups = repository_c.fetch()
-    assert len(backups) == 0
-
-    # Check D
-    backups = repository_d.fetch()
-    print()
-    assert len(backups) == 1
-    assert backups[0].datetime == '20200420_130000'
-
-
-def test_raise_error_if_creator_chain_is_not_compatible():
-
-    with pytest.raises(exp.BuilderChainningIncompatibility):
-        MemoryRepositoryLink(
-            source=MockMysqlToLocal(directory='/backups')
-        )
-
-    with pytest.raises(exp.BuilderChainningIncompatibility):
-        RepositoryLink.chain(
-            MemoryRepositoryLink(source_bucket='A', target_bucket='B'),
-            MockLocalToFtp(directory='/backups', server='ftp.backup')
-        )
+    Clock.monkey_now('20200112_000000')
+    composer.run()
+    assert len(adapterB.fetch_backups()) == 2

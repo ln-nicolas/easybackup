@@ -65,43 +65,23 @@ class FtpRepositoryAdapter(RepositoryAdapter):
 
 class LocalToFtp(RepositoryLink):
 
-    def setup(self, source_directory=False, ftp_conf={}):
-        self.source_directory = os.path.abspath(source_directory)
-        self.ftp_conf = ftp_conf
-
-    def source_adapter(self):
-        return LocalRepositoryAdapter(directory=self.source_directory)
-
-    def target_adapter(self):
-        return FtpRepositoryAdapter(ftp_conf=self.ftp_conf)
-
     def copy_backup(self, backup):
 
-        source_archive = self.source_adapter().backup_path(backup)
+        source_archive = self.source_adapter.backup_path(backup)
         source_archive = open(source_archive, 'rb')
 
-        with self.target_adapter().ftp() as ftp:
-            target_archive = self.target_adapter().backup_path(backup)
+        with self.target_adapter.ftp() as ftp:
+            target_archive = self.target_adapter.backup_path(backup)
             ftp.storbinary('STOR '+target_archive, source_archive)
 
 
 class FtpToLocal(RepositoryLink):
 
-    def setup(self, target_directory=False, ftp_conf={}):
-        self.target_directory = os.path.abspath(target_directory)
-        self.ftp_conf = ftp_conf
-
-    def source_adapter(self):
-        return FtpRepositoryAdapter(ftp_conf=self.ftp_conf)
-
-    def target_adapter(self):
-        return LocalRepositoryAdapter(directory=self.target_directory)
-
     def copy_backup(self, backup):
 
-        source_archive = self.source_adapter().backup_path(backup)
-        target_archive = self.target_adapter().backup_path(backup)
+        source_archive = self.source_adapter.backup_path(backup)
+        target_archive = self.target_adapter.backup_path(backup)
         target_archive = open(target_archive, 'wb')
 
-        with self.source_adapter().ftp() as ftp:
+        with self.source_adapter.ftp() as ftp:
             ftp.retrbinary('RETR '+source_archive, target_archive.write)

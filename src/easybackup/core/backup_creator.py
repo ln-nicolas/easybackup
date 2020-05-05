@@ -1,11 +1,12 @@
 
-from . import exceptions as exp
 from .backup import Backup
 from .repository import Repository
-from ..policy.synchronization import SynchronizationPolicy, CopyPastePolicy
+from ..utils.taggable import TaggableType
 
 
-class BackupCreator():
+class BackupCreator(TaggableType):
+
+    type_tag = False
 
     def __init__(self, **conf):
         self.setup(**conf)
@@ -26,3 +27,9 @@ class BackupCreator():
     def target_repository(self) -> Repository:
         """ Repository where backups are store. """
         return Repository(adapter=self.target_adapter())
+
+    @classmethod
+    def by_type_tag(cls, tag):
+        for sub in cls.__subclasses__():
+            if sub.type_tag == tag:
+                return sub
