@@ -2,9 +2,7 @@
 import random
 import string
 import tarfile
-from ftplib import FTP
 from contextlib import contextmanager
-import pytest
 import os
 from easybackup.adapters.ftp import FtpRepositoryAdapter, LocalToFtp, FtpToLocal
 from easybackup.adapters.local import (LocalBackupCreator,
@@ -12,11 +10,11 @@ from easybackup.adapters.local import (LocalBackupCreator,
 from easybackup.core.backup_supervisor import BackupSupervisor
 from easybackup.policy.backup import TimeIntervalBackupPolicy
 from easybackup.core.repository import Repository
-from easybackup.policy.synchronization import CopyPastePolicy
 from easybackup.policy.cleanup import ClearAllCleanupPolicy
-from easybackup.core.backup import Volume
+from easybackup.core.volume import Volume
 from tests_core.mock import clock
 
+# pytest fixture
 from .utils import temp_directory
 
 __author__ = "sne3ks"
