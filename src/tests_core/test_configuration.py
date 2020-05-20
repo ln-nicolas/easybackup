@@ -8,8 +8,9 @@ from easybackup.core.repository_link import RepositoryLink
 from easybackup.policy.backup import BackupPolicy, TimeIntervalBackupPolicy
 from easybackup.policy.cleanup import LifetimeCleanupPolicy
 from easybackup.policy.synchronization import SynchronizeRecentPolicy
-from easybackup.utils.parse_time_duration import parse_time_duration
 from easybackup.loader.yaml_composer import YamlComposer, YamlComposerException
+from easybackup.core.lexique import parse_time_duration
+
 
 from . import mock
 

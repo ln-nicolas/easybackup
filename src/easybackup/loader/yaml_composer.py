@@ -9,7 +9,7 @@ from easybackup.core.repository_link import RepositoryLink, Synchroniser
 from easybackup.policy.backup import BackupPolicy
 from easybackup.policy.cleanup import CleanupPolicy
 from easybackup.policy.synchronization import SynchronizationPolicy
-
+from easybackup.core.lexique import is_number_version
 from easybackup.core.exceptions import EasyBackupException
 
 try:
@@ -20,10 +20,6 @@ except ImportError:
 
 class YamlComposerException(EasyBackupException):
     pass
-
-
-def is_number_version(string):
-    return re.compile('[0-9]+\.[0-9]+\.[0-9]+').match(string)
 
 
 class YamlComposer():
