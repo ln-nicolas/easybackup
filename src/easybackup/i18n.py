@@ -8,7 +8,11 @@ class i18n():
         'backup_policy_is_required': 'Backup policy is required in {project}/{volume}.',
         'class_init_missing_argument': 'Missing argument ({args}) initializing {base_cls}.',
         'class_init_unexpected_argument': 'Unexpected argument ({args}) initializing {base_cls}.',
-        'repositories_should_be_a_dictionnary': 'repositories should be a dictionnary.'
+        'repositories_should_be_a_dictionnary': 'repositories should be a dictionnary.',
+        'time_do_not_match_time_format': '{string} do not match time format (dhms)',
+        'could_not_find_compatible_connector': 'Could not find compatible connector between {source} and {target}.',
+        'tag_not_found': 'Could not find tag: {tag} matching class: {cls}.',
+        'missing_configuration_options': 'Missing configuration option {option}.'
     }
 
     @classmethod

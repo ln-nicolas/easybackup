@@ -1,8 +1,11 @@
 from ..core.repository import Repository
 from ..core.clock import Clock
+from ..utils.taggable import Taggable
 
 
-class SynchronizationPolicy():
+class SynchronizationPolicy(Taggable):
+
+    type_tag = False
 
     def to_copy(self, source: Repository, target: Repository):
         """ Determine backups that should be copy from source to target """
@@ -14,6 +17,8 @@ class SynchronizationPolicy():
 
 
 class CopyPastePolicy(SynchronizationPolicy):
+
+    type_tag = 'copypaste'
 
     """
     Copy all backups present on the source repository
@@ -43,6 +48,8 @@ class ClonePolicy(SynchronizationPolicy):
 
 
 class SynchronizeRecentPolicy(SynchronizationPolicy):
+
+    type_tag = 'recent'
 
     """
     It Guarantee a `minimum` number of backups on the

@@ -2,10 +2,10 @@ from typing import List
 
 from ..core.backup import Backup
 from ..core.clock import Clock
-from ..utils.taggable import TaggableType
+from ..utils.taggable import Taggable
 
 
-class BackupPolicy(TaggableType):
+class BackupPolicy(Taggable):
 
     def should_backup(self, backups: List[Backup]) -> bool:
         """ Determine if a new backup should be done according to existing backups """

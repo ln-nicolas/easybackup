@@ -1,6 +1,6 @@
 
 
-class TaggableType():
+class Taggable():
 
     type_tag = False
 

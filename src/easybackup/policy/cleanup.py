@@ -2,10 +2,10 @@ from typing import List
 
 from ..core.backup import Backup
 from ..core.clock import Clock
-from ..utils.taggable import TaggableType
+from ..utils.taggable import Taggable
 
 
-class CleanupPolicy(TaggableType):
+class CleanupPolicy(Taggable):
 
     def filter_backups_to_cleanup(self, backups: List[Backup]) -> (List[Backup]):
         """ Return a tuple backup to cleanup """

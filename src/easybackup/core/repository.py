@@ -5,10 +5,10 @@ from typing import List
 from ..policy.cleanup import CleanupPolicy
 from .backup import Backup, Volume
 from .lexique import ARCHIVE_TYPE
-from ..utils.taggable import TaggableType
+from ..utils.taggable import Taggable
 
 
-class RepositoryAdapter(TaggableType):
+class RepositoryAdapter(Taggable):
 
     tag_type = False
 

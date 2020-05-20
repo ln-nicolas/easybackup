@@ -5,7 +5,6 @@ from ..policy.synchronization import SynchronizationPolicy, CopyPastePolicy
 from ..policy.cleanup import CleanupPolicy
 from . import exceptions as exp
 
-
 class RepositoryLink():
 
     type_tag_source = False
@@ -66,7 +65,11 @@ class RepositoryLink():
             if sub.type_tag_source == source and sub.type_tag_target == target:
                 return sub
 
-        raise exp.RepositoryLinkNotFound()
+        raise exp.RepositoryLinkNotFound(
+            'could_not_find_compatible_connector',
+            source=source,
+            target=target
+        )
 
 
 class Synchroniser():

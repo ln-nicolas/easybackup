@@ -1,10 +1,10 @@
 
 from .backup import Backup
 from .repository import Repository
-from ..utils.taggable import TaggableType
+from ..utils.taggable import Taggable
 
 
-class BackupCreator(TaggableType):
+class BackupCreator(Taggable):
 
     type_tag = False
 
