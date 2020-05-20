@@ -1,9 +1,9 @@
 
-from .backup import Backup, Volume
+from .backup import Backup
 from .repository import Repository, RepositoryAdapter
 from ..policy.synchronization import SynchronizationPolicy, CopyPastePolicy
-from ..policy.cleanup import CleanupPolicy
 from . import exceptions as exp
+
 
 class RepositoryLink():
 

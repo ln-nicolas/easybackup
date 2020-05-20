@@ -1,6 +1,7 @@
 from typing import List
 
-from .backup import Backup, Volume
+from .backup import Backup
+from .volume import Volume
 from .backup_creator import BackupCreator
 from .repository_link import Synchroniser
 from ..policy.backup import BackupPolicy

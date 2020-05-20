@@ -3,7 +3,8 @@ from pathlib import Path
 from typing import List
 
 from ..policy.cleanup import CleanupPolicy
-from .backup import Backup, Volume
+from .backup import Backup
+from .volume import Volume
 from .lexique import ARCHIVE_TYPE
 from ..utils.taggable import Taggable
 
