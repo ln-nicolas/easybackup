@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from easybackup.core.backup_composer import BackupComposer
+from easybackup.core.backup_supervisor import BackupSupervisor
 from easybackup.core.repository import Repository
 from easybackup.policy.backup import TimeIntervalBackupPolicy
 
@@ -36,7 +36,7 @@ def test_composer_can_infer_repository_from_creator():
     creator = MemoryBackupCreator(target_bucket='C')
     backup_policy = TimeIntervalBackupPolicy(1000)
 
-    composer = BackupComposer(
+    composer = BackupSupervisor(
         project='myproject',
         volume='db',
         creator=creator,

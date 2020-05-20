@@ -9,7 +9,7 @@ from .clock import Clock
 from .repository import Repository
 
 
-class BackupComposer():
+class BackupSupervisor():
 
     def __init__(
         self,

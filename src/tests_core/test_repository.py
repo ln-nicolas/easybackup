@@ -2,7 +2,7 @@
 import pytest
 
 from easybackup.core.backup import Backup
-from easybackup.core.backup_composer import BackupComposer
+from easybackup.core.backup_supervisor import BackupSupervisor
 from easybackup.core.repository import Repository
 
 from .mock import MemoryBackupCreator, MemoryRepositoryAdapter, clock
@@ -51,7 +51,7 @@ def test_fetch_backup_on_repository_with_many_volumes():
     memory_adapter = MemoryRepositoryAdapter(backups=mockbackups)
 
     repository = Repository(adapter=memory_adapter)
-    myproject_db_composer = BackupComposer(
+    myproject_db_composer = BackupSupervisor(
         project='myproject',
         volume='db',
         creator=False,
@@ -77,7 +77,7 @@ def test_fetch_backup_on_repository_with_many_project():
     memory_adapter = MemoryRepositoryAdapter(backups=mockbackups)
 
     repository = Repository(adapter=memory_adapter)
-    myproject_db_composer = BackupComposer(
+    myproject_db_composer = BackupSupervisor(
         project='myproject',
         volume='db',
         creator=False,

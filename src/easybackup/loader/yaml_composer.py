@@ -2,7 +2,7 @@ import re
 
 import yaml
 
-from easybackup.core.backup_composer import BackupComposer
+from easybackup.core.backup_supervisor import BackupSupervisor
 from easybackup.core.backup_creator import BackupCreator
 from easybackup.core.repository import Repository, RepositoryAdapter
 from easybackup.core.repository_link import RepositoryLink, Synchroniser
@@ -18,7 +18,7 @@ except ImportError:
     from yaml import Loader
 
 
-class YamlConfigurationException(EasyBackupException):
+class YamlComposerException(EasyBackupException):
     pass
 
 
@@ -26,7 +26,7 @@ def is_number_version(string):
     return re.compile('[0-9]+\.[0-9]+\.[0-9]+').match(string)
 
 
-class YamlConfiguration():
+class YamlComposer():
 
     def __init__(self, document):
         obj = (yaml.load(document, Loader=Loader) or {})
@@ -57,7 +57,7 @@ class YamlConfiguration():
         if not self._composers:
             self._composers = []
             for conf in self.volumes:
-                composer = self.build_backup_composer(conf)
+                composer = self.build_backup_supervisor(conf)
                 self._composers.append(composer)
 
         return self._composers
@@ -65,22 +65,22 @@ class YamlConfiguration():
     def check_version_number(self):
         version = self.obj.get('version')
         if (not version) or (type(version) is not str) or (not is_number_version(version)):
-            raise YamlConfigurationException('version_number_is_missing_or_invalid')
+            raise YamlComposerException('version_number_is_missing_or_invalid')
 
     def check_projects(self):
         projects = self.obj.get('projects')
         if not projects:
-            raise YamlConfigurationException('configuration_should_have_at_least_one_project')
+            raise YamlComposerException('configuration_should_have_at_least_one_project')
 
         if type(projects) is not dict:
-            raise YamlConfigurationException('projects_should_be_a_dictionnary')
+            raise YamlComposerException('projects_should_be_a_dictionnary')
 
     def check_repositories(self):
         repositories = self.obj.get('repositories')
         if repositories and type(repositories) is not dict:
-            raise YamlConfigurationException('repositories_should_be_a_dictionnary')
+            raise YamlComposerException('repositories_should_be_a_dictionnary')
 
-    def build_backup_composer(self, conf):
+    def build_backup_supervisor(self, conf):
 
         backup_policy = self.build_object(BackupPolicy, conf['backup_policy'], type_tag_name='policy')
         creator = self.build_object(BackupCreator, conf['creator'])
@@ -114,7 +114,7 @@ class YamlConfiguration():
 
                 synchronizers.append(Synchroniser(link=link, sync_policy=policy))
 
-        return BackupComposer(
+        return BackupSupervisor(
             project=conf.get('project'),
             volume=conf.get('volume'),
             creator=creator,
@@ -135,7 +135,7 @@ class YamlConfiguration():
 
                 backup_policy = volume_conf.get('backup_policy')
                 if not backup_policy:
-                    raise YamlConfigurationException('backup_policy_is_required', project=project_name, volume=volume_name)
+                    raise YamlComposerException('backup_policy_is_required', project=project_name, volume=volume_name)
 
                 cleanup_policy = volume_conf.get('cleanup_policy', False)
                 dispatchers = volume_conf.get('dispatchers', [])
@@ -176,10 +176,10 @@ class YamlConfiguration():
             argsnames = error.args[0].split("'")[1::2]
 
             if missing_argument:
-                raise YamlConfigurationException('class_init_missing_argument', base_cls=base_cls.__name__, args=argsnames)
+                raise YamlComposerException('class_init_missing_argument', base_cls=base_cls.__name__, args=argsnames)
 
             elif unexpected_argument:
-                raise YamlConfigurationException('class_init_unexpected_argument', base_cls=base_cls.__name__, args=argsnames)
+                raise YamlComposerException('class_init_unexpected_argument', base_cls=base_cls.__name__, args=argsnames)
 
             else:
                 raise
@@ -190,14 +190,14 @@ class YamlConfiguration():
         _tag = conf.get(type_tag_name, False)
 
         if not _tag:
-            raise YamlConfigurationException(
+            raise YamlComposerException(
                 'missing_configuration_options',
                 option=type_tag_name,
             )
 
         child = base_class.by_type_tag(_tag)
         if not child:
-            raise YamlConfigurationException(
+            raise YamlComposerException(
                 'tag_not_found',
                 tag=_tag,
                 cls=str(base_class)

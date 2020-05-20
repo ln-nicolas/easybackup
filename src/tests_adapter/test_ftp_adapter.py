@@ -9,7 +9,7 @@ import os
 from easybackup.adapters.ftp import FtpRepositoryAdapter, LocalToFtp, FtpToLocal
 from easybackup.adapters.local import (LocalBackupCreator,
                                        LocalRepositoryAdapter)
-from easybackup.core.backup_composer import BackupComposer
+from easybackup.core.backup_supervisor import BackupSupervisor
 from easybackup.policy.backup import TimeIntervalBackupPolicy
 from easybackup.core.repository import Repository
 from easybackup.policy.synchronization import CopyPastePolicy
@@ -70,7 +70,7 @@ def test_backup_then_restore_local_file_to_ftp_repository(temp_directory):
 
         ftp_adapter = FtpRepositoryAdapter(ftp_conf=FTP_CONF)
 
-        composer = BackupComposer(
+        composer = BackupSupervisor(
             project='myproject',
             volume='db',
             creator=local_creator,
@@ -125,7 +125,7 @@ def test_delete_backup_on_ftp_repository(temp_directory):
         backup_directory=temp_directory('backups-twine')
     )
 
-    composerA = BackupComposer(
+    composerA = BackupSupervisor(
         project='myprojectA',
         volume='db',
         creator=local_creator_A,
@@ -134,7 +134,7 @@ def test_delete_backup_on_ftp_repository(temp_directory):
         backup_policy=TimeIntervalBackupPolicy(10)
     )
 
-    composerB = BackupComposer(
+    composerB = BackupSupervisor(
         project='myprojectB',
         volume='db',
         creator=local_creator_B,

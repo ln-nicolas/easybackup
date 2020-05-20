@@ -2,7 +2,7 @@ import pytest
 from parameterized import parameterized
 
 from easybackup.core.backup import Backup
-from easybackup.core.backup_composer import BackupComposer
+from easybackup.core.backup_supervisor import BackupSupervisor
 from easybackup.core.clock import Clock
 from easybackup.core.repository import Repository
 from easybackup.policy.backup import TimeIntervalBackupPolicy
@@ -29,13 +29,13 @@ def test_build_backup(memory_adapter):
     rep = Repository(
         adapter=memory_adapter
     )
-    backup_composer = BackupComposer(
+    backup_supervisor = BackupSupervisor(
         project='myproject',
         volume='db',
         creator=memory_backup_creator,
         repository=rep
     )
-    backup_composer.build_backup()
+    backup_supervisor.build_backup()
 
     backups = rep.fetch()
 
@@ -103,7 +103,7 @@ def test_should_create_new_backup_with_time_interval_backup_policy(clock, backup
 
     backup_policy = TimeIntervalBackupPolicy(backup_interval)
 
-    composer = BackupComposer(
+    composer = BackupSupervisor(
         project='myproject',
         volume='db',
         creator=memory_backup_creator,

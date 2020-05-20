@@ -5,7 +5,7 @@ from parameterized import parameterized
 
 from easybackup.core import exceptions as exp
 from easybackup.core.backup import Backup
-from easybackup.core.backup_composer import BackupComposer
+from easybackup.core.backup_supervisor import BackupSupervisor
 from easybackup.core.repository_link import RepositoryLink, Synchroniser
 from easybackup.core.repository import Repository
 from easybackup.policy.backup import TimeIntervalBackupPolicy
@@ -88,7 +88,7 @@ def test_composer_backup_can_be_synchronizeed_to_other_repositories():
     link_to_c = MemoryRepositoryLink(adapterA, adapterC)
 
     creator = MemoryBackupCreator(bucket='A')
-    composer = BackupComposer(
+    composer = BackupSupervisor(
         project='myproject',
         volume='db',
         creator=creator,
@@ -198,7 +198,7 @@ def test_setup_a_cleanup_policy_on_synchronized_repository():
     link = MemoryRepositoryLink(adapterA, adapterB)
     creator = MemoryBackupCreator(bucket='A')
 
-    composer = BackupComposer(
+    composer = BackupSupervisor(
         project='myproject',
         volume='db',
         creator=creator,

@@ -2,29 +2,29 @@ import pytest
 
 from easybackup.core import exceptions as exp
 from easybackup.core.backup_creator import BackupCreator
-from easybackup.core.backup_composer import BackupComposer
+from easybackup.core.backup_supervisor import BackupSupervisor
 from easybackup.core.repository import RepositoryAdapter
 from easybackup.core.repository_link import RepositoryLink
 from easybackup.policy.backup import BackupPolicy, TimeIntervalBackupPolicy
 from easybackup.policy.cleanup import LifetimeCleanupPolicy
 from easybackup.policy.synchronization import SynchronizeRecentPolicy
 from easybackup.utils.parse_time_duration import parse_time_duration
-from easybackup.loader.yaml_configuration import YamlConfiguration, YamlConfigurationException
+from easybackup.loader.yaml_composer import YamlComposer, YamlComposerException
 
 from . import mock
 
 
 def test_yaml_check_error_version():
 
-    with pytest.raises(YamlConfigurationException) as error:
-        YamlConfiguration("""version: 1.0.0""")
+    with pytest.raises(YamlComposerException) as error:
+        YamlComposer("""version: 1.0.0""")
     assert error.value.code == 'configuration_should_have_at_least_one_project'
 
 
 def test_yaml_check_error_project_definition():
 
-    with pytest.raises(YamlConfigurationException) as error:
-        YamlConfiguration("""
+    with pytest.raises(YamlComposerException) as error:
+        YamlComposer("""
         version: 1.0.0
         projects:
             myproject
@@ -34,7 +34,7 @@ def test_yaml_check_error_project_definition():
 
 def test_yaml_load_multiple_composers():
 
-    conf = YamlConfiguration("""
+    conf = YamlComposer("""
         version: 1.0.0
         projects:
             myproject:
@@ -87,7 +87,7 @@ def test_load_time_interval_from_formated_string():
 
 def test_yaml_load_volume_creator_from_short_name():
 
-    composers = YamlConfiguration("""
+    composers = YamlComposer("""
         version: 1.0.0
         projects:
             myproject:
@@ -100,7 +100,7 @@ def test_yaml_load_volume_creator_from_short_name():
                      interval: 1000
     """).composers
 
-    assert type(composers[0]) is BackupComposer
+    assert type(composers[0]) is BackupSupervisor
     assert composers[0].project == 'myproject'
     assert composers[0].volume == 'app'
     assert composers[0].creator.source_bucket == 'A'
@@ -124,8 +124,8 @@ def test_yaml_load_volume_creator_check_parameters():
         def setup(self, required, notrequired=False):
             return 1
 
-    with pytest.raises(YamlConfigurationException) as error:
-        YamlConfiguration("""
+    with pytest.raises(YamlComposerException) as error:
+        YamlComposer("""
             version: 1.0.0
             projects:
                 myproject:
@@ -138,8 +138,8 @@ def test_yaml_load_volume_creator_check_parameters():
         """).composers
     assert error.value.code == 'class_init_missing_argument'
 
-    with pytest.raises(YamlConfigurationException) as error:
-        YamlConfiguration("""
+    with pytest.raises(YamlComposerException) as error:
+        YamlComposer("""
             version: 1.0.0
             projects:
                 myproject:
@@ -155,7 +155,7 @@ def test_yaml_load_volume_creator_check_parameters():
 
 def test_yaml_load_volume_creator_with_backup_policy():
 
-    composers = YamlConfiguration("""
+    composers = YamlComposer("""
         version: 1.0.0
         projects:
             myproject:
@@ -174,7 +174,7 @@ def test_yaml_load_volume_creator_with_backup_policy():
 
 def test_yaml_load_volume_creator_with_cleanup_policy():
 
-    composers = YamlConfiguration("""
+    composers = YamlComposer("""
         version: 1.0.0
         projects:
             myproject:
@@ -201,7 +201,7 @@ def test_yaml_load_volume_creator_with_cleanup_policy():
 
 def test_yaml_load_repository():
 
-    loader = YamlConfiguration("""
+    loader = YamlComposer("""
         version: 1.0.0
 
         repositories:
@@ -263,7 +263,7 @@ def test_infer_repository_link_adapter_with_target_and_source():
 
 def test_yaml_load_dispatcher():
 
-    composers = YamlConfiguration("""
+    composers = YamlComposer("""
         version: 1.0.0
 
         repositories:
