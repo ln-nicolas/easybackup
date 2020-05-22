@@ -91,8 +91,9 @@ class BackupSupervisor():
 
     def run_backup(self):
 
-        backups = self.repository.fetch()
+        backups = self.repository.fetch(volume=Volume(name=self.volume, project=self.project))
         should_backup = self._backup_policy.should_backup(backups)
+
         if should_backup:
             self.build_backup()
 

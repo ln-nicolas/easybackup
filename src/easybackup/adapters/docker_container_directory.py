@@ -27,7 +27,7 @@ class DockerContainerDirectory(BackupCreator):
         backup.file_type = 'tar'
 
         tmp_container_tar = self.tmp_container_tar(backup)
-        archive_path = self.target_adapter().backup_path(backup)+'.tar'
+        archive_path = self.target_adapter().backup_path(backup)
 
         self.tar(tmp_container_tar)
         self.copy(tmp_container_tar, archive_path)

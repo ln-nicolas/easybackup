@@ -27,14 +27,13 @@ class DockerContainerSql(BackupCreator):
 
     def build_backup(self, backup):
         dump_file_name = self.dump_file_name(backup)
-
         self.dump(dump_file_name)
         self.tar(dump_file_name, backup)
         self.remove_dump(dump_file_name)
 
     def dump_file_name(self, backup):
         backup.file_type = 'sql'
-        return self.target_adapter().backup_path(backup)+'.sql'
+        return self.target_adapter().backup_path(backup)
 
     def dump(self, dump_file_name):
         os.system(self.backup_cmd(dump_file_name))

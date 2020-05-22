@@ -20,6 +20,11 @@ class BackupCreator(Taggable):
         """ Return the repository where backups are stored """
         raise NotImplementedError
 
+    def do_build_backup(self, backup: Backup) -> Backup:
+        Hook.plays('before_build_backup', creator=self, backup=backup)
+        self.build_backup(backup)
+        Hook.plays('after_build_backup', creator=self, backup=backup)
+
     def build_backup(self, backup: Backup) -> Backup:
         """ build backup """
         raise NotImplementedError

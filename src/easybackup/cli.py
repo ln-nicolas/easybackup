@@ -1,8 +1,15 @@
 import argparse
 import sys
+import logging
 
 from easybackup import __version__
 from easybackup.loader.yaml_composer import YamlComposer
+from easybackup.logger import Logger
+
+logger = logging.getLogger('Easybackup')
+logger.setLevel(logging.DEBUG)
+Logger.add_logger(logger)
+
 
 def parse_args():
     """Parse command line parameters
@@ -42,6 +49,8 @@ def main(args):
     conf = YamlComposer(composer_content)
     for composer in conf.composers:
         composer.run()
+
+    logging.info('bye')
 
 
 def run():
