@@ -16,6 +16,14 @@ class Backup():
         self._volume = volume
         self._file_type = file_type
 
+    def copy(self):
+        return Backup(
+            datetime=self._datetime,
+            project=self._project,
+            volume=self._volume,
+            file_type=self._file_type
+        )
+
     @property
     def datetime(self) -> str:
         """ datetime of backup """
