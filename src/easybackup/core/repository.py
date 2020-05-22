@@ -32,7 +32,7 @@ class RepositoryAdapter(Taggable):
 
     @classmethod
     def backup_to_filename(cls, backup: Backup) -> str:
-        return backup.formated_name
+        return backup.formated_name +'.'+ backup.file_type
 
     @classmethod
     def filename_to_backup(cls, filename: str) -> Backup:

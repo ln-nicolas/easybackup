@@ -2,6 +2,7 @@
 from .backup import Backup
 from .repository import Repository
 from ..utils.taggable import Taggable
+from .hook import Hook
 
 
 class BackupCreator(Taggable):

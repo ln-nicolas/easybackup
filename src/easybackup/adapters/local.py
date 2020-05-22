@@ -69,7 +69,7 @@ class LocalBackupCreator(BackupCreator):
 
     def build_backup(self, backup):
         backup.file_type = self.file_type
-        archive_path = self.target_adapter().backup_path(backup)
+        archive_path = self.target_adapter().backup_path(backup)+'.'+self.file_type
         self._backup_source(archive_path)
         return backup
 

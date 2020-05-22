@@ -99,7 +99,7 @@ class MemoryRepositoryLink(RepositoryLink):
 
     def copy_backup(self, backup):
         self.target_adapter.backups.append(
-            backup.formated_name
+            backup.formated_name+'.tar'
         )
 
 

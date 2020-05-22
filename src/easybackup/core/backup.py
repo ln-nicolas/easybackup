@@ -53,8 +53,7 @@ class Backup():
         return self.format_name(
             volume=self.volume,
             project=self.project,
-            datetime=self.datetime,
-            file_type=self.file_type,
+            datetime=self.datetime
         )
 
     @classmethod
@@ -63,16 +62,12 @@ class Backup():
         volume,
         project,
         datetime,
-        file_type,
     ):
 
-        str_format = "{prefix}-{project}-{volume}-{datetime}.{file_type}"
+        str_format = "{prefix}-{project}-{volume}-{datetime}"
         return str_format.format(
             prefix=cls.prefix,
             volume=volume,
             project=project,
             datetime=datetime,
-            file_type=file_type,
         )
-
-

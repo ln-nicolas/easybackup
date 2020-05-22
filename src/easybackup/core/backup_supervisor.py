@@ -71,11 +71,14 @@ class BackupSupervisor():
         ))
 
     def build_backup(self):
-        self._creator.build_backup(Backup(
+
+        backup = Backup(
             datetime=Clock.now(),
             volume=self.volume,
             project=self.project
-        ))
+        )
+        self._creator.do_build_backup(backup)
+
         for synchronizeer in self.synchronizers:
             synchronizeer.synchronize()
 
