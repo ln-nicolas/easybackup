@@ -67,9 +67,14 @@ class Repository():
     def adapter(self) -> RepositoryAdapter:
         return self._adapter
 
-    def fetch(self) -> List[Backup]:
+    def fetch(self, volume: Volume = False) -> List[Backup]:
         """ return all backups on the repository """
-        return self._adapter.fetch_backups()
+        backups = self._adapter.fetch_backups()
+
+        if volume:
+            backups = volume.match(backups)
+
+        return backups
 
     def last_backup(self) -> Backup:
         """ return last backup on the repository """

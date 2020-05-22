@@ -6,11 +6,14 @@ from easybackup.core.backup_supervisor import BackupSupervisor
 from easybackup.core.backup_creator import BackupCreator
 from easybackup.core.repository import Repository, RepositoryAdapter
 from easybackup.core.repository_link import RepositoryLink, Synchroniser
+from easybackup.core.volume import Volume
 from easybackup.policy.backup import BackupPolicy
 from easybackup.policy.cleanup import CleanupPolicy
 from easybackup.policy.synchronization import SynchronizationPolicy
 from easybackup.core.lexique import is_number_version
 from easybackup.core.exceptions import EasyBackupException
+from easybackup.adapters import *
+
 
 try:
     from yaml import CLoader as Loader
@@ -97,6 +100,7 @@ class YamlComposer():
                 policy = False
                 if sync_conf.get('policy'):
                     policy = self.build_object(SynchronizationPolicy, sync_conf, type_tag_name='policy')
+                    policy.volume = Volume(name=conf.get('volume'), project=conf.get('project'))
 
                 source_adapter = creator.target_adapter()
                 target_adapter = repository.adapter
@@ -107,7 +111,6 @@ class YamlComposer():
                 )
 
                 link = link_self(source=source_adapter, target=target_adapter)
-
                 synchronizers.append(Synchroniser(link=link, sync_policy=policy))
 
         return BackupSupervisor(
@@ -184,11 +187,11 @@ class YamlComposer():
     def get_child_class(cls, base_class, conf, type_tag_name='type'):
 
         _tag = conf.get(type_tag_name, False)
-
         if not _tag:
             raise YamlComposerException(
                 'missing_configuration_options',
                 option=type_tag_name,
+                class_name=str(base_class)
             )
 
         child = base_class.by_type_tag(_tag)
@@ -196,7 +199,7 @@ class YamlComposer():
             raise YamlComposerException(
                 'tag_not_found',
                 tag=_tag,
-                cls=str(base_class)
+                class_name=str(base_class)
             )
 
         return child

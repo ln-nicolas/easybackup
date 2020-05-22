@@ -20,4 +20,4 @@ def temp_directory():
 
     yield func
 
-    subprocess.run(['rm', '-rf', directory])
+    #subprocess.run(['rm', '-rf', directory])

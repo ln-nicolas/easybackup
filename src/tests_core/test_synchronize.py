@@ -5,6 +5,7 @@ from parameterized import parameterized
 
 from easybackup.core import exceptions as exp
 from easybackup.core.backup import Backup
+from easybackup.core.volume import Volume
 from easybackup.core.backup_supervisor import BackupSupervisor
 from easybackup.core.repository_link import RepositoryLink, Synchroniser
 from easybackup.core.repository import Repository
@@ -12,6 +13,7 @@ from easybackup.policy.backup import TimeIntervalBackupPolicy
 from easybackup.policy.synchronization import CopyPastePolicy, SynchronizeRecentPolicy
 from easybackup.policy.cleanup import LifetimeCleanupPolicy
 from easybackup.core.clock import Clock
+
 
 from .mock import (MemoryBackupCreator, MemoryRepositoryAdapter,
                    MemoryRepositoryLink, MockLocalToFtp, MockMysqlToLocal)
@@ -223,3 +225,24 @@ def test_setup_a_cleanup_policy_on_synchronized_repository():
     Clock.monkey_now('20200112_000000')
     composer.run()
     assert len(adapterB.fetch_backups()) == 2
+
+
+def test_synchronise_repository_with_multiple_volumes():
+
+    mockbackups = [
+        'easybackup-myproject-db-20200420_130000.tar',
+        'easybackup-myproject-db-20200420_130100.tar',
+        'easybackup-myproject-folder-20200420_130000.tar',
+        'easybackup-myproject-folder-20200420_130100.tar',
+    ]
+    Clock.monkey_now('20200423_130000')
+    A = Repository(adapter=MemoryRepositoryAdapter(bucket='A', backups=mockbackups))
+    B = Repository(adapter=MemoryRepositoryAdapter(bucket='B', backups=[]))
+
+    volume = Volume(name='db', project='myproject')
+    policy = SynchronizeRecentPolicy(minimum=4, volume=volume)
+    tocopy = policy.to_copy(A, B)
+
+    assert len(tocopy) == 2
+    assert tocopy[0].volume == 'db'
+    assert tocopy[1].volume == 'db'

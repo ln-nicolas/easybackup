@@ -52,5 +52,8 @@ MANIFEST
 .vscode/
 
 .env
+.backup-compose.yml
 
 env/
+
+backup-compose.yml

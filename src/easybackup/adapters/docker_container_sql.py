@@ -6,6 +6,8 @@ from .local import LocalRepositoryAdapter, LocalBackupCreator
 
 class DockerContainerSql(BackupCreator):
 
+    type_tag = 'docker_container_sql'
+
     def setup(
         self,
         container_name,
@@ -47,7 +49,6 @@ class DockerContainerSql(BackupCreator):
         })
 
     def tar(self, archive_path, backup):
-
         localBackup = LocalBackupCreator(
             source=archive_path,
             backup_directory=self.backup_directory

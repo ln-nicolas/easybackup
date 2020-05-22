@@ -302,8 +302,9 @@ def test_yaml_load_dispatcher():
 
     assert type(composer.synchronizers[0].link) is mock.MemoryRepositoryLink
     assert composer.synchronizers[0].link.target_adapter.bucket == 'B'
-
     assert composer.synchronizers[1].link.target_adapter.bucket == 'C'
+    assert composer.synchronizers[0].sync_policy.volume.name == 'app'
+    assert composer.synchronizers[1].sync_policy.volume.name == 'app'
 
     assert type(composer.synchronizers[0].sync_policy) is SynchronizeRecentPolicy
     assert composer.synchronizers[0].sync_policy.minimum == 5

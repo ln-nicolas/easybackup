@@ -13,6 +13,8 @@ from easybackup.core.repository import RepositoryAdapter
 
 class LocalRepositoryAdapter(RepositoryAdapter):
 
+    type_tag = 'local'
+
     def setup(self, directory):
         self.directory = directory
 
@@ -53,6 +55,7 @@ class LocalRepositoryAdapter(RepositoryAdapter):
 
 class LocalBackupCreator(BackupCreator):
 
+    type_tag = 'local'
     file_type = 'tar'
 
     def setup(self, source, backup_directory):
@@ -92,6 +95,9 @@ class LocalBackupCreator(BackupCreator):
 
 
 class LocalToLocal(RepositoryLink):
+
+    type_tag_source = 'local'
+    type_tag_target = 'local'
 
     def copy_backup(self, backup):
         source_path = self.source_adapter.backup_path(backup)

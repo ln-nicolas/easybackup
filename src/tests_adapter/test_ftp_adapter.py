@@ -28,7 +28,6 @@ FTP_CONF = {
     'user': FTP_USER,
     'password': FTP_PASSWORD,
     'directory' :FTP_BACKUP_DIRECTORY,
-    'prefix': 'backup'
 }
 
 
@@ -66,7 +65,8 @@ def test_backup_then_restore_local_file_to_ftp_repository(temp_directory):
             backup_directory=temp_directory('backups')
         )
 
-        ftp_adapter = FtpRepositoryAdapter(ftp_conf=FTP_CONF)
+        ftp_adapter = FtpRepositoryAdapter(**FTP_CONF)
+        volume = Volume(name='db', project='myproject')
 
         composer = BackupSupervisor(
             project='myproject',
@@ -76,25 +76,26 @@ def test_backup_then_restore_local_file_to_ftp_repository(temp_directory):
             cleanup_policy=False,
             backup_policy=TimeIntervalBackupPolicy(10)
         )
-
         composer.run()
 
         link = LocalToFtp(
             source=local_creator.target_adapter(),
-            target=ftp_adapter
+            target=ftp_adapter,
+            volume=volume
         )
         link.synchronize()
 
         target = link.target_adapter
         backups = target.fetch_backups()
 
-        backup = backups[0]
+        backup = volume.match(backups)[0]
 
         local_restore = LocalRepositoryAdapter(directory=temp_directory('restore'))
 
         link = FtpToLocal(
             source=ftp_adapter,
-            target=local_restore
+            target=local_restore,
+            volume=Volume(name='db', project='myproject')
         )
         link.copy_backup(backup)
 
@@ -112,7 +113,7 @@ def test_delete_backup_on_ftp_repository(temp_directory):
 
     randomfile(temp_directory('production-A.txt'))
     randomfile(temp_directory('production-B.txt'))
-    ftp_adapter = FtpRepositoryAdapter(ftp_conf=FTP_CONF)
+    ftp_adapter = FtpRepositoryAdapter(**FTP_CONF)
 
     local_creator_A = LocalBackupCreator(
         source=temp_directory('production-A.txt'),

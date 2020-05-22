@@ -6,6 +6,8 @@ from .local import LocalRepositoryAdapter, LocalBackupCreator
 
 class DockerContainerDirectory(BackupCreator):
 
+    type_tag = 'docker_container_directory'
+
     def setup(
         self,
         container_name,

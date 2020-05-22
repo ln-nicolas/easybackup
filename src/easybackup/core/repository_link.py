@@ -1,5 +1,6 @@
 
 from .backup import Backup
+from .volume import Volume
 from .repository import Repository, RepositoryAdapter
 from ..policy.synchronization import SynchronizationPolicy, CopyPastePolicy
 from . import exceptions as exp
@@ -13,14 +14,20 @@ class RepositoryLink():
     def __init__(
         self,
         source: RepositoryAdapter,
-        target: RepositoryAdapter
+        target: RepositoryAdapter,
+        volume: Volume = False
     ):
         self._source = source
         self._target = target
+        self._volume = volume
 
     def copy_backup(self, backup: Backup):
         """ Synchronize backup from source to target """
         raise NotImplementedError
+
+    @property
+    def volume(self) -> Volume:
+        return self._volume
 
     @property
     def target_adapter(self) -> RepositoryAdapter:
@@ -41,7 +48,7 @@ class RepositoryLink():
     def synchronize(self, policy: SynchronizationPolicy = False):
         """ Synchronize all backup from source to target """
 
-        policy = policy or CopyPastePolicy()
+        policy = policy or CopyPastePolicy(volume=self.volume)
 
         tocopy = policy.to_copy(
             source=self.source_repository,
@@ -78,9 +85,10 @@ class Synchroniser():
         self,
         link: RepositoryLink,
         sync_policy: SynchronizationPolicy = False,
+        volume: Volume = False
     ):
         self.link = link
-        self.sync_policy = sync_policy or CopyPastePolicy()
+        self.sync_policy = sync_policy or CopyPastePolicy(volume=volume)
 
     def synchronize(self):
         self.link.synchronize(policy=self.sync_policy)

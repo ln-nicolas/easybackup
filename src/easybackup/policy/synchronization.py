@@ -1,11 +1,19 @@
 from ..core.repository import Repository
 from ..core.clock import Clock
+from ..core.volume import Volume
 from ..utils.taggable import Taggable
 
 
 class SynchronizationPolicy(Taggable):
 
     type_tag = False
+
+    def __init__(self, volume: Volume = False, **conf):
+        self.volume = volume
+        self.setup(**conf)
+
+    def setup(self, **conf):
+        pass
 
     def to_copy(self, source: Repository, target: Repository):
         """ Determine backups that should be copy from source to target """
@@ -26,8 +34,8 @@ class CopyPastePolicy(SynchronizationPolicy):
     """
 
     def to_copy(self, source: Repository, target: Repository):
-        source_backups = source.fetch()
-        target_backups = target.fetch()
+        source_backups = source.fetch(volume=self.volume)
+        target_backups = target.fetch(volume=self.volume)
 
         return list(filter(
             lambda backup: backup.formated_name not in [b.formated_name for b in target_backups],
@@ -56,19 +64,19 @@ class SynchronizeRecentPolicy(SynchronizationPolicy):
     target repository. The most recent ones are synchronized.
     """
 
-    def __init__(self, minimum: int):
+    def setup(self, minimum: int):
         self.minimum = minimum
 
     def to_copy(self, source, target):
 
-        source_backups = self.order_backups(source.fetch())
-        target_backups = target.fetch()
+        source_backups = self.order_backups(source.fetch(volume=self.volume))
+        target_backups = target.fetch(volume=self.volume)
         notsync = self.notsync(source_backups, target_backups)
 
         return notsync[-self.minimum:]
 
     def to_delete(self, source, target):
-        target_backups = self.order_backups(target.fetch())
+        target_backups = self.order_backups(target.fetch(volume=self.volume))
         target_backups = sorted(
             target_backups,
             key=lambda backup: backup.datetime

@@ -16,11 +16,13 @@ from .local import LocalRepositoryAdapter
 
 class FtpRepositoryAdapter(RepositoryAdapter):
 
-    def setup(self, ftp_conf):
-        self._host = ftp_conf.get('host')
-        self._user = ftp_conf.get('user')
-        self._password = ftp_conf.get('password')
-        self._directory = ftp_conf.get('directory')
+    type_tag = 'ftp'
+
+    def setup(self, host, user, password, directory):
+        self._host = host
+        self._user = user
+        self._password = password
+        self._directory = directory
 
     @contextmanager
     def ftp(self):
@@ -65,6 +67,9 @@ class FtpRepositoryAdapter(RepositoryAdapter):
 
 class LocalToFtp(RepositoryLink):
 
+    type_tag_source = 'local'
+    type_tag_target = 'ftp'
+
     def copy_backup(self, backup):
 
         source_archive = self.source_adapter.backup_path(backup)
@@ -76,6 +81,9 @@ class LocalToFtp(RepositoryLink):
 
 
 class FtpToLocal(RepositoryLink):
+
+    type_tag_source = 'ftp'
+    type_tag_target = 'local'
 
     def copy_backup(self, backup):
 
