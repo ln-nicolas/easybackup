@@ -14,6 +14,17 @@ def is_number_version(string):
     return re.compile('[0-9]+\.[0-9]+\.[0-9]+').match(string)
 
 
+def is_explicit_time_duration(string):
+
+    if type(string) is not str:
+        return False
+
+    if not re.compile('^((([0-9]*)d)?(([0-9]*)h)?(([0-9]*)m)?(([0-9]*)s)?)$').match(string):
+        return False
+    else:
+        return True
+
+
 def parse_time_duration(string):
 
     if not re.compile('^((([0-9]*)d)?(([0-9]*)h)?(([0-9]*)m)?(([0-9]*)s)?)$|^([0-9]*)$').match(string):

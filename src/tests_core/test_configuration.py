@@ -9,7 +9,7 @@ from easybackup.policy.backup import BackupPolicy, TimeIntervalBackupPolicy
 from easybackup.policy.cleanup import LifetimeCleanupPolicy
 from easybackup.policy.synchronization import SynchronizeRecentPolicy
 from easybackup.loader.yaml_composer import YamlComposer, YamlComposerException
-from easybackup.core.lexique import parse_time_duration
+from easybackup.core.lexique import parse_time_duration, is_explicit_time_duration
 
 
 from . import mock
@@ -68,7 +68,7 @@ def test_load_backup_creator_by_type_tag():
 
 
 def test_load_time_interval_from_formated_string():
-
+    
     assert parse_time_duration('10000') == 10000
     assert parse_time_duration('10000s') == 10000
     assert parse_time_duration('1m') == 60
@@ -84,6 +84,35 @@ def test_load_time_interval_from_formated_string():
 
     with pytest.raises(Exception):
         parse_time_duration('-10s')
+
+    assert is_explicit_time_duration(1000) is False
+    assert is_explicit_time_duration('1000') is False
+    assert is_explicit_time_duration('1000s') is True
+    assert is_explicit_time_duration('1m') is True
+    assert is_explicit_time_duration('1m10s') is True
+    assert is_explicit_time_duration('1h') is True
+    assert is_explicit_time_duration('1h30m10s') is True
+    assert is_explicit_time_duration('1d') is True
+    assert is_explicit_time_duration('1d1h30m10s') is True
+
+
+def test_load_a_time_duration_formated_from_yaml():
+
+    composers = YamlComposer("""
+        version: 1.0.0
+        projects:
+            myproject:
+                app:
+                   type: inmemory
+                   source_bucket: A
+                   target_bucket: B
+                   backup_policy:
+                     policy: timeinterval
+                     interval: 1d1h30m10s
+    """).composers
+
+    assert type(composers[0]) is BackupSupervisor
+    assert composers[0].backup_policy.interval == 60*60*24 + 60*60 + 30*60 + 10
 
 
 def test_yaml_load_volume_creator_from_short_name():

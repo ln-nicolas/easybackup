@@ -10,7 +10,7 @@ from easybackup.core.volume import Volume
 from easybackup.policy.backup import BackupPolicy
 from easybackup.policy.cleanup import CleanupPolicy
 from easybackup.policy.synchronization import SynchronizationPolicy
-from easybackup.core.lexique import is_number_version
+from easybackup.core.lexique import is_number_version, is_explicit_time_duration, parse_time_duration
 from easybackup.core.exceptions import EasyBackupException
 from easybackup.adapters import *
 
@@ -157,13 +157,16 @@ class YamlComposer():
         if not policy_conf:
             return False
 
-        return cls.build_object(BackupPolicy, conf)
+        parsed_conf = cls.convert_time_duration_to_int(policy_conf)
+        return cls.build_object(BackupPolicy, parsed_conf)
 
     @classmethod
     def build_object(cls, base_cls, conf, type_tag_name='type'):
 
-        _cls = cls.get_child_class(base_cls, conf, type_tag_name=type_tag_name)
-        kwargs = cls.get_setup_kwargs(conf)
+        parsed_conf = cls.convert_time_duration_to_int(conf)
+
+        _cls = cls.get_child_class(base_cls, parsed_conf, type_tag_name=type_tag_name)
+        kwargs = cls.get_setup_kwargs(parsed_conf)
 
         try:
             obj = _cls(**kwargs)
@@ -208,3 +211,10 @@ class YamlComposer():
     def get_setup_kwargs(cls, conf):
         keywords = ['type', 'backup_policy', 'cleanup_policy', 'dispatchers', 'policy']
         return {key: value for key, value in conf.items() if key not in keywords}
+
+    @classmethod
+    def convert_time_duration_to_int(cls, conf):
+        return {
+            key: parse_time_duration(value) if is_explicit_time_duration(value) else value
+            for key, value in conf.items()
+        }
