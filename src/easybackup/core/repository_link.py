@@ -4,7 +4,7 @@ from .volume import Volume
 from .repository import Repository, RepositoryAdapter
 from ..policy.synchronization import SynchronizationPolicy, CopyPastePolicy
 from . import exceptions as exp
-
+from .hook import Hook
 
 class RepositoryLink():
 
@@ -57,6 +57,16 @@ class RepositoryLink():
         todelete = policy.to_delete(
             source=self.source_repository,
             target=self.target_repository
+        )
+
+        Hook.plays(
+            'on_synchronize_repository',
+            volume=self.volume,
+            source=self.source_adapter,
+            target=self.target_repository,
+            policy=policy,
+            tocopy=tocopy,
+            todelete=todelete
         )
 
         self.copy_backups(tocopy)

@@ -13,8 +13,15 @@ class i18n():
         'could_not_find_compatible_connector': 'Could not find compatible connector between {source} and {target}.',
         'tag_not_found': 'Could not find tag: {tag} matching class: {class_name}.',
         'missing_configuration_options': 'Missing configuration option {option} for class: {class_name}',
-        'creating_backup': 'Creating {backup} with {creator}',
-        'backup_has_been_create': 'Backup {backup} has been create by {creator}'
+        'creating_backup': 'Creating {backup} with {creator} on {repository}...',
+        'backup_has_been_create': 'Backup {backup} has been created by {creator} on {repository}',
+        'fetching_backups_on_repository': 'Feching backups on {repository} for volume {volume} ...',
+        'repository_fetch_backups_results': 'Found {count} backup(s) for volume {volume} on {repository} the last backup date time is {last_datetime}',
+        'repository_fetch_backups_empty_results': 'Found 0 Backups for volume {volume} on {repository}',
+        'on_synchronize_repositories': 'Synchronizing {volume} backups from {source} to {target}, with {policy}. {count_tocopy} backup(s) to copy, and {count_todelete} backup(s) to delete.',
+        'should_backup_volume_according_to_backup_policy': 'Should backup {volume} according to {policy}',
+        'skip_backup_volume_according_to_backup_policy': 'Skip backup {volume} according to {policy}',
+        'on_cleanup_backup_with_policy': 'Clean-up {count_tocleanup} backup(s) for {volume} according to {policy}'
     }
 
     @classmethod

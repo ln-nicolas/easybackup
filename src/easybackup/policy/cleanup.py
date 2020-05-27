@@ -7,6 +7,9 @@ from ..utils.taggable import Taggable
 
 class CleanupPolicy(Taggable):
 
+    def __str__(self):
+        return "[%s cleanup policy]" % (self.type_tag or "")
+
     def filter_backups_to_cleanup(self, backups: List[Backup]) -> (List[Backup]):
         """ Return a tuple backup to cleanup """
         pass

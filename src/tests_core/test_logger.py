@@ -50,7 +50,7 @@ def test_info_log_on_build_backup(memory_adapter):
     backup_name = rep.fetch()[-1].formated_name
 
     assert logger.logs[0][0] == INFO_LVL
-    assert logger.logs[0][1] == i18n.t('creating_backup', backup=backup_name, creator=memory_backup_creator)
+    assert logger.logs[0][1] == i18n.t('creating_backup', backup=backup_name, creator=str(memory_backup_creator), repository=str(rep))
 
     assert logger.logs[1][0] == INFO_LVL
-    assert logger.logs[1][1] == i18n.t('backup_has_been_create', backup=backup_name, creator=memory_backup_creator)
+    assert logger.logs[1][1] == i18n.t('backup_has_been_create', backup=backup_name, creator=str(memory_backup_creator), repository=str(rep))

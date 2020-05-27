@@ -12,6 +12,9 @@ class SynchronizationPolicy(Taggable):
         self.volume = volume
         self.setup(**conf)
 
+    def __str__(self):
+        return "[%s sync policy]" % (self.type_tag or "")
+
     def setup(self, **conf):
         pass
 

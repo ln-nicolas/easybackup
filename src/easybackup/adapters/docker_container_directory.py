@@ -35,7 +35,7 @@ class DockerContainerDirectory(BackupCreator):
 
     def tar(self, tmp_container_tar):
 
-        cmd = 'docker exec -u {user} {container} tar -cvzf {tar_file} {directory}'.format(
+        cmd = 'docker exec -u {user} {container} tar -czf {tar_file} {directory}'.format(
             user=self.container_user,
             container=self.container_name,
             tar_file=tmp_container_tar,

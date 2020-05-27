@@ -7,6 +7,9 @@ from ..utils.taggable import Taggable
 
 class BackupPolicy(Taggable):
 
+    def __str__(self):
+        return "[%s backup policy]" % (self.type_tag or "")
+
     def should_backup(self, backups: List[Backup]) -> bool:
         """ Determine if a new backup should be done according to existing backups """
 

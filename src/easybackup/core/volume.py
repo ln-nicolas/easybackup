@@ -8,6 +8,9 @@ class Volume():
         self.name = name
         self.project = project
 
+    def __str__(self):
+        return "Volume({project}/{name})".format(name=self.name, project=self.project)
+
     def match(self, backups: List[Backup]) -> List[Backup]:
         """ return backup matching volume """
         return list(filter(

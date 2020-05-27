@@ -12,6 +12,9 @@ class BackupCreator(Taggable):
     def __init__(self, **conf):
         self.setup(**conf)
 
+    def __str__(self):
+        return "[%s]" % self.type_tag
+
     def setup(self, **conf):
         """ setup creator with custom configuration values """
         raise NotImplementedError
@@ -21,9 +24,9 @@ class BackupCreator(Taggable):
         raise NotImplementedError
 
     def do_build_backup(self, backup: Backup) -> Backup:
-        Hook.plays('before_build_backup', creator=self, backup=backup)
+        Hook.plays('before_build_backup', creator=self, backup=backup, repository=self.target_repository)
         self.build_backup(backup)
-        Hook.plays('after_build_backup', creator=self, backup=backup)
+        Hook.plays('after_build_backup', creator=self, backup=backup, repository=self.target_repository)
 
     def build_backup(self, backup: Backup) -> Backup:
         """ build backup """

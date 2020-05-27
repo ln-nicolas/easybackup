@@ -1,4 +1,6 @@
 import re
+import datetime
+
 from ..i18n import i18n
 
 ARCHIVE_TYPE = [
@@ -8,6 +10,11 @@ ARCHIVE_TYPE = [
 ]
 
 DATE_FORMAT = '%Y%m%d_%H%M%S'
+
+
+def human_dt(dt):
+    dt = datetime.datetime.strptime(dt, DATE_FORMAT)
+    return dt.strftime('%A %Y-%m-%d %H:%M:%S')
 
 
 def is_number_version(string):

@@ -8,6 +8,7 @@ from ..policy.backup import BackupPolicy
 from ..policy.cleanup import CleanupPolicy
 from .clock import Clock
 from .repository import Repository
+from .hook import Hook
 
 
 class BackupSupervisor():
@@ -70,6 +71,35 @@ class BackupSupervisor():
             backups
         ))
 
+    def run(self):
+
+        if self.cleanup_policy:
+            self.run_cleanup()
+
+        if self.backup_policy:
+            self.run_backup()
+
+        self.synchronize()
+
+    def run_backup(self):
+        volume = Volume(name=self.volume, project=self.project)
+        backups = self.repository.fetch(volume=volume)
+        should_backup = self._backup_policy.should_backup(backups)
+
+        Hook.plays(
+            'on_checking_volume_backup_policy',
+            volume=volume,
+            policy=self._backup_policy,
+            backups=backups,
+            it_should=should_backup
+        )
+
+        if should_backup:
+            self.build_backup()
+
+    def run_cleanup(self):
+        self.repository.cleanup(policy=self.cleanup_policy, volume=Volume(self.volume, self.project))
+
     def build_backup(self):
 
         backup = Backup(
@@ -79,23 +109,6 @@ class BackupSupervisor():
         )
         self._creator.do_build_backup(backup)
 
+    def synchronize(self):
         for synchronizeer in self.synchronizers:
             synchronizeer.synchronize()
-
-    def run(self):
-        if self.cleanup_policy:
-            self.run_cleanup()
-
-        if self.backup_policy:
-            self.run_backup()
-
-    def run_backup(self):
-
-        backups = self.repository.fetch(volume=Volume(name=self.volume, project=self.project))
-        should_backup = self._backup_policy.should_backup(backups)
-
-        if should_backup:
-            self.build_backup()
-
-    def run_cleanup(self):
-        self.repository.cleanup(policy=self.cleanup_policy, volume=Volume(self.volume, self.project))

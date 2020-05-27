@@ -47,7 +47,7 @@ def test_emit_event_on_backup_build(memory_adapter):
     backup_list = []
     @Hook.register('before_build_backup')
     @Hook.register('after_build_backup')
-    def put_backup_on_list(creator, backup):
+    def put_backup_on_list(creator, backup, repository):
         backup_list.append(backup)
 
     backup_supervisor.build_backup()
