@@ -105,7 +105,7 @@ class Repository():
         )
 
     def tocleanup(self, policy: CleanupPolicy, volume: Volume = False) -> List[Backup]:
-        backups = self.fetch()
+        backups = self.fetch(volume=Volume)
         backups = volume.match(backups) if volume else backups
         tocleanup = policy.filter_backups_to_cleanup(backups)
         return tocleanup
